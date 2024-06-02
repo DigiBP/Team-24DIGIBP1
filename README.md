@@ -2,6 +2,7 @@
 This project was completed during the Spring semester of 2024 as part of the course "Digitalization of Business Processes." The objective of this project was to analyze and model an existing process, identify problems and potential for digitalization, and digitalize the process where it adds value.
 
 ## Table of content
+
 - [📚 Background](#background)
 - [📝 Short Description of Process](#short-description-of-process)
 - [🔍 As-is Process](#as-is-process)
@@ -25,7 +26,13 @@ The FeuerWächter AG is a SME with 177 employees and is part of the internationa
 This project focuses on the dunning process, which will be executed every two weeks on Tuesday. The process is mainly located in SAP. Other tools used in the process are an advanced PDF tool, Excel, and Outlook. The modelling is done based on the Dunning run instructions document and further feedback from the finance department. A dunning run includes about 300 reminders, the majority of which are emailed. Around 50 dunning blocks will be set per dunning run. Setting a dunning block does not trigger a dunning notice during the dunning block. A valid reason is required to set a dunning block. The finance department will decide whether the reason is valid or not based on the description.
 
 # 🔎 As-is Process
+The BPMN models for all processes mentioned in this readme can be found in the "Models" 
+
+![Overview As-is Process](05_Images\As_is_Process_Overview.jpg)
+
 We have divided the AS-IS process into three sections, in the screenshot above, the entire process can be seen with the sections highlighted. The explanation of the process follows these three sections.
+
+![Section 1 As-is Process](05_Images\As_is_Section_1.jpg)
 
 **Start Event: Every second Tuesday**
 
@@ -49,6 +56,8 @@ No: The process goes on with checking if the dunning block is applicable.
 
 The gateway decides whether a Dunning block is applicable or not. This is done, for example, in cases such as an error by Feuerwächter AG or a delay in delivery. In these cases, a dunning would be unjustified, as no delivery has yet been made. If a dunning block may be set, this is done directly by the Finance Department (User Task: Set dunning block) and then this item is also removed from the dunning list (Task: Remove instance from dunning list).
 If the Dunning block may not be set, the process is continued with the following task.  
+
+![Section 2 As-is Process](05_Images\As_is_Section_2.png)
 
 **User Task: Export dunning list**
 
@@ -75,6 +84,8 @@ After receiving the list, the Finance Department checks the Dunning blocks again
 This gateway checks if the dunning address mentioned in the dunning list is correct. It may be that a customer does not want invoices and reminders to be sent to the usual main address, but to a branch office or the relevant department with a different address.   
 Yes: The process continues to "Execute dunning run."  
 No: The process moves to "Correct dunning address." In this step, the Dunning address is corrected manually by a user so that the reminder is sent to the address requested by the customer.
+
+![Section 3 As-is Process](05_Images\As_is_Section_3.jpg)
 
 **Execute dunning run**
 
@@ -141,7 +152,37 @@ We assumed that a new role in SAP could be created for our to-be process. This r
 ## 🛠️ Technical Implementation
 In this section, we elaborate the technical implementation. For this purpose, we have divided the process into three sections to make it easier to follow. Within these sections, we have highlighted and numbered parts, which we will elaborate in the following chapters in detail.
 
+![Technical Implementation Overview](05_Images\To_be_process_overview.jpg)
+
 ### Section 1
+In the first section we will discuss the following implementations:
+1.	Reminder Dunning Block
+2.	Decision Dunning Block
+
+**Reminder Dunning Block**
+
+We have changed the beginning of the process slightly, by moving the start of the entire process from Tuesday to Thursday. Every other week, an e-mail with the reminder to set the dunning block on the overdue invoices is automatically sent to the heads of department (HoD). With the new user roles as discussed in our assumptions above, they are asked to add dunning block were deemed necessary by adding comments directly on SAP (in our case the Excel file).
+
+![Reminder Dunning Block](05_Images\Reminder_set_dunning_block.jpg)
+Figure 1 shows the Camunda diagram, we start the process with a timer start event (Figure 1, A), which triggers on Thursday morning every other week (Figure 2 shows the settings). The task “Send reminder e-mail” then triggers a make scenario (Figure 3), which sends the reminder e-mail to the HoD.
+
+![To-be Section 1 Figure 2 & 3](05_Images\TI_S1_F2.jpg)
+The make scenario is simple, it consists of a webhook (Figure 3, A), which is triggered by the system task. To send the e-mail, we use the Gmail module (Figure 3, B) which is connected to our project e-mail address which then sends out the predefined e-mail to the HoD (Figure 4). The e-mail addresses are static, as we assume that the HoD do not change very frequently, and thus changing them manually if they do, seems a reasonable approach. The e-mail body is written in HTML, to ensure proper formatting of the e-mail. At the end, we have a webhook response module (Figure 3, C), which sends the variable “Reminder_status=successful” back to Camunda (Figure 5). This variable is then needed in Camunda to confirm successful completion of the reminder task. Figure 6 shows the e-mail received by the recipient defined in make.
+
+![To-be Section 1 Figure 4 & 5](05_Images\TI_S1_F4_F5.jpg)
+![To-be Section 1 Figure 6](05_Images\TI_S1_F6.jpg)
+In Camunda, we added an expression on the flow (Figure 1, B) in between the first timer event and the system task, as “Reminder_status=unsuccessful”. This expression is needed for the exclusive gateway to confirm the reminder was sent successfully by the make scenario. To achieve this, we put an execution listener on the “unsuccessful” arrow (Figure 1, C), looking for the variable “Reminder_status=unsuccessful”. However, if the reminder was sent successfully, this variable will change to “successful” and as a result follow the default path. If there was an issue with the make scenario, an employee will have to check manually what the error might have been, as a user task (Figure 1, D). Finally, the process arrives at the second timer event(Figure 1, E), which will continue the process the following Tuesday.
+
+**Decision Table**
+
+The process for deciding which reminder code to set starts with the service task "Count rows in Spreadsheet." This is needed as preparation for the following subprocess. 
+
+![To-be Section 1 Decision Table](05_Images\TI_S1_DT.jpg)
+
+The Make scenario below is initiated by the mentioned service task. The service task triggers the webhook (1), which then consults the dunning run list in SAP (in our case, a Google Spreadsheet) (2).
+
+![To-be Section 1 Decision Table F1-3](05_Images\TI_S1_DT_123.jpg)
+
 ### Section 2
 ### Section 3
 
