@@ -1,14 +1,23 @@
 # 🚀 Team-24DIGIBP1
 This project was completed during the Spring semester of 2024 as part of the course "Digitalization of Business Processes." The objective of this project was to analyze and model an existing process, identify problems and potential for digitalization, and digitalize the process where it adds value.
 
-## Table of content
-
+## Table of contents
+- [👩‍💻 Team Members](#team-members)
 - [📚 Background](#background)
 - [📝 Short Description of Process](#short-description-of-process)
 - [🔍 As-is Process](#as-is-process)
-- [🚩Pain Points / Digitalization Potential](#pain-points--digitalization-potential)
+    - [🚩Pain Points / Digitalization Potential](#pain-points--digitalization-potential)
 - [🔄 To-be Process](#to-be-process)
-- [🤔 Assumptions](#assumptions)
+    - [🤔 Assumptions](#assumptions)
+    - [📄 Description To-Be Process](#description-to-be-process)
+  - [🛠️ Technical Implementation](#technical-implementation)
+    - [Section 1](#section-1)
+    - [Section 2](#section-2)
+    - [Section 3](#section-3)
+- [💻 Technologies Used](#technologies-used)
+- [▶️ Running the Process](#running-the-process)
+- [🙏 Acknowledgements](#acknowledgements)
+
 
 
 
@@ -28,7 +37,7 @@ This project focuses on the dunning process, which will be executed every two we
 # 🔎 As-is Process
 The BPMN models for all processes mentioned in this readme can be found in the "Models" 
 
-![Overview As-is Process](05_Images\As_is_Process_Overview.jpg)
+![Overview As-is Process](./05_Images/As_is_Process_Overview.jpg)
 
 We have divided the AS-IS process into three sections, in the screenshot above, the entire process can be seen with the sections highlighted. The explanation of the process follows these three sections.
 
@@ -186,7 +195,7 @@ The Make scenario below is initiated by the mentioned service task. The service 
 ### Section 2
 ### Section 3
 
-## Technologies used
+## 💻 Technologies used
 
 ## ▶️ Running the Process
 
