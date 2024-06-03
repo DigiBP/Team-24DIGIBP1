@@ -217,8 +217,73 @@ A filter (4), structured as follows, had to be added between the two modules JSO
 
 The bundles forwarded from the Make scenario to Camunda are now sequentially checked through the decision table (B) and then follow the path corresponding to the decision. The DMN and the decision table are structured as follows:
 ![To-be Section 1 Decision Table DMN](./05_Images/TI_S1_DT_DMN.jpg)
+![To-be Section 1 Decision Table DMN 1](./05_Images/TI_S1_DT_DMN1.jpg)
+![To-be Section 1 Decision Table DMN 2](./05_Images/TI_S1_DT_DMN2.jpg)
+![To-be Section 1 Decision Table DMN 3](./05_Images/TI_S1_DT_DMN3.jpg)
+![To-be Section 1 Decision Table DMN 4](./05_Images/TI_S1_DT_DMN4.jpg)
+![To-be Section 1 Decision Table DMN 5](./05_Images/TI_S1_DT_DMN5.jpg)
 
+The decision table then derives the corresponding decision based on the three inputs: "Kommentar", "Überfällig seit" and "letzter MahnCode". The output from the decision table results in one of the dunning Codes from the following legend:
 
+| DunningCode | Description |
+|--------------|--------|
+|0| Mahnsperre / Dunning Block |
+|1 | Noch nicht fällig / Not yet due|
+| 2 | Zahlungserinnerung / Payment reminder|
+| 3 | Mahnung mit Betreibungsandrohung / Reminder with enforcement warning|
+| 4 | 2. Mahnung mit Betreibungsandrohung / Second reminder with enforcement warning |
+| 5 | Weiterleitung an Creditreform - Keine Mahnung / Forward to Creditreform - No reminder| 
+
+Finally, in the “Sending dunning Code” task (C), the Code selected using the decision table is sent back to the dunning list (Google Spreadsheet) and inserted in the  “MahnCode” column, column P, so that it can be processed by the user if necessary. 
+
+![To-be Section 1 Decision Table DMN 6](./05_Images/TI_S1_DT_DMN6.jpg)
+This is done using the following make scenario.
+![To-be Section 1 Decision Table DMN 7](./05_Images/TI_S1_DT_DMN7.jpg)
+First, the “Set variable” tool (2) is used to set up a “Cell name” variable, which is required at a later time. The value of the variable relates to column P and is a sum of the selected line from the dunning run (loopCounter) and 2. The two is required so that the header line and the title line are excluded and therefore correctly start on line 2. After setting the variable, the corresponding cell is selected via the Update Cell module (3) and the correct dunning code is updated in the cell using result.Mahncode.
+
+![To-be Section 1 Decision Table DMN 10](./05_Images/TI_S1_DT_DMN10.jpg)![To-be Section 1 Decision Table DMN 11](./05_Images/TI_S1_DT_DMN11.jpg)
+
+The filter (4) between the two Google Sheet modules (3 and 5) causes the cells with the code 0 or 5 to be searched for in the dunning list. This filter is required so that only those with 0 or 5 are displayed in the Camunda Task List and the others run through automatically. These rows are then searched for using the Google Sheet module Search Rows (5):
+
+![To-be Section 1 Decision Table DMN 8](./05_Images/TI_S1_DT_DMN8.jpg)![To-be Section 1 Decision Table DMN 9](./05_Images/TI_S1_DT_DMN9.jpg)
+
+The filter “send message?” (6) is used to compare the calculated row number (sum(1. loopCounter;2) with the actual row number (11. Row number). This ensures that the actions are carried out step by step for the individual relevant rows in a loop and not for all of them at the same time. 
+
+![To-be Section 1 Decision Table DMN 12](./05_Images/TI_S1_DT_DMN12.jpg)
+
+Finally, the HTTP module (7) triggers the intermediate message catch event and provides the listed data (see User Task List Camunda screen), which is finally received and checked by the Finance Department employee in the task list. 
+
+![To-be Section 1 Decision Table DMN 13](./05_Images/TI_S1_DT_DMN13.jpg)
+![To-be Section 1 Decision Table DMN 14](./05_Images/TI_S1_DT_DMN14.jpg)
+
+Then, there are three possible paths, continuing from the exclusive gateway triggered by the decision table (B). The result variable for this is set to "result" for the business task, which is then used as a variable in the various sequence flows. The variable then refers to the output "MahnCode" from the decision table and selects one of the three possible paths.
+
+![To-be Section 1 Decision Table DMN 15](./05_Images/TI_S1_DT_DMN15.jpg) ![To-be Section 1 Decision Table DMN 16](./05_Images/TI_S1_DT_DMN16.jpg)
+
+First, however, a distinction is made between Codes 1-4 and all others. This means that if Codes 1-4 are set, the process is run through as follows. Since reminder Codes 1-4 do not require any further actions from the user. The subprocess in this cases will directly come to the end event (J).
+
+![To-be Section 1 Decision Table DMN 17](./05_Images/TI_S1_DT_DMN17.jpg)
+
+The second path is selected for all others and then differentiated in the “Which Code” gateway to Code 5 and 0. 
+
+![To-be Section 1 Decision Table DMN 18](./05_Images/TI_S1_DT_DMN18.jpg)
+
+First, however, the receipt of the dunning information is awaited via a message intermediate catch event. As soon as the information has been received via the message event, the user is assigned a task in which he is to check the dunning information received (D). This is displayed as follows: 
+![To-be Section 1 Decision Table DMN 19](./05_Images/TI_S1_DT_DMN19.jpg)
+
+This display allows the employee to see all the necessary information directly from the dunning list without having to consult it. The employee therefore has the relevant data to decide what exactly should be done with this claim, whether it should be dunned or not, or whether it should be forwarded to the Credit Reform debt collection agency or not.
+Continuing with the second path with Code 0 and therefore dunning block. The setting of this dunning Code must be checked again by the user using the user task “Check necessity of dunning block” (H). The user, in this case the Finance Department employee, must check again whether the dunning block is really justified or not. If the user decides that the dunning block is justified, the process is continued without any changes having to be made and will then end with the end event (J).
+
+![To-be Section 1 Decision Table DMN 20](./05_Images/TI_S1_DT_DMN20.jpg)
+If the Finance Department employee decides that the dunning block is unjustified and the item still needs to be dunned, they must revise the comment and change the dunning Code (I) directly in SAP (in our case in the Google Spreadsheet) so that the correct dunning notice is sent.
+![To-be Section 1 Decision Table DMN 21](./05_Images/TI_S1_DT_DMN21.jpg)
+
+Finally, there is the third path. This has Code 5 and leads to the corresponding data being forwarded to Credit Reform in section 2 to drive the debt collection there. However, if Code 5 has been decided by the decision table, it must also first be checked manually by a user (E). If the employee comes to the conclusion that forwarding to Credit Reform is required, the employee must confirm Code 5 (F) in the task list.
+![To-be Section 1 Decision Table DMN 22](./05_Images/TI_S1_DT_DMN22.jpg)
+If Code 5 is not justified and the position is not to be forwarded to Credit Reform, the user must change to Code 0 manually (G) to make sure, that the case will not be forwarded to Credit Reform. 
+![To-be Section 1 Decision Table DMN 23](./05_Images/TI_S1_DT_DMN23.jpg)
+
+This process automatization helps that the majority of items can already be decided via the decision table. Some (Code 0 and 5) still have to be checked by a user and by executing the corresponding user tasks, but most of them will be handled automatically.
 ### Section 2
 ### Section 3
 
