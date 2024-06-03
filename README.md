@@ -141,7 +141,7 @@ The company distinguishes between two different billing addresses the “Konto�
 When the dunning run is executed, an email with a dunning notice as a pdf in the attachment is automatically sent to customers who have opted to receive dunning notice via email. However, some customers still prefer to receive dunning notice via post. To send these dunning notice via post, the finance department needs to extract a PDF containing all the dunning notice from SAP, save it onto their computer, and manually extract the corresponding PDF from the large PDF file to print it.
 
 # 🔄 To-Be Process
-This section addresses the to-be process. The BPMN models for the To-Be Process can be found in the "Models". 
+This section addresses the to-be process. The BPMN models for the To-Be Process can be found in the folder 01_Models. A video demonstrating the entire process can be found in the folder 04_Videos.
 
 ## 🤔 Assumptions
 We assumed that a new role in SAP could be created for our to-be process. This role would have limited access. It would have access to open the dunning list and add comments to the corresponding dunning position. However, the role can not make any other changes to the dunning positions or execute a dunning run. The creation of this role would make the process leaner. 
@@ -327,13 +327,38 @@ Lastly, to allow the process to proceed in Camunda, we use an HTTP module (Figur
 
 ![To-be Section 2 ADC Overview](./05_Images/TI_S2_DAC_Overview.jpg) 
 
-The correct dunning address task will use all the “Debitornummer” from each position on the dunning list to match them to the Master database, where the “Debitornummer” will be matched. If they are matched, information like the customer's name, the “Konto,” the postal address, and the email address (where applicable) will be added to the dunning list sheet. This will be done with a make scenario. 
+The next step for Dunning notices with Code 1-4 is to correct the dunning address. An external service task will be performed to correct all dunning addresses where needed (Figure 1, A). The correct dunning address task will use all the “Debitornummer” from each position on the dunning list to match them to the Master database, where the “Debitornummer” will be matched. If they are matched, information like the customer's name, the “Konto,” the postal address, and the email address (where applicable) will be added to the dunning list sheet. This will be done with a make scenario. 
+
+![To-be Section 2 ADC1](./05_Images/TI_S2_DAC1.jpg) 
+The scenario starts with a Webhook (Figure 2, A) and an HTTP request (Figure 2, B), enabling Camunda to trigger it (Figure 3). The next module (Figure 2, C) selects all the “Debitorennummern” from the current dunning list (Figure 4). The Array (Figure 2, D) takes the extracted “Debitorennummer,” the Bundle order position, and the total number of bundles and converts them into an array (Figure 5). 
+
+![To-be Section 2 ADC2](./05_Images/TI_S2_DAC2.jpg) 
+![To-be Section 2 ADC3](./05_Images/TI_S2_DAC3.jpg) 
+The next four modules after the array aggregator (Figure 6, A1-A4) write the headings of the new rows in the current dunning run sheets (Figure 7). These modules are followed by an iterator. The iterator (Figure 6, B) is needed to split up the generated array. This has to be done this way to obtain the bundle order position, as this information is essential for writing the different cells afterwards (Figure 8). The Iterator also allows for iterating multiple times through the next five Google Sheets modules. 
+
+![To-be Section 2 ADC4](./05_Images/TI_S2_DAC4.jpg) ![To-be Section 2 ADC5](./05_Images/TI_S2_DAC5.jpg) 
+![To-be Section 2 ADC6](./05_Images/TI_S2_DAC6.jpg) 
+
+The next five Google Sheets (Figure 9, A1-A5) modules after the Iterator writes the customer's name, "Konto," postal address, and email (Figure 10 and 11). The array aggregator (Figure 9, B) will convert the total number of bundles back into an array (Figure 12).
+
+![To-be Section 2 ADC7](./05_Images/TI_S2_DAC7.jpg) 
+![To-be Section 2 ADC8](./05_Images/TI_S2_DAC8.jpg) 
+The next module in Google Sheets (Figure 13, A) will utilize this array as input to detect any missing values in a row, indicating an unsuccessful match (Figure 14). The HTTP request (Figure 13, B) will respond with a "complete" to indicate task completion. The body of the request will include the number of corrected addresses from the Array aggregator and the number of failed matches from Google Sheets, which will be submitted to Camunda (Figure 15).This particular scenario is quite lengthy and complex, so it requires some time to complete. 
+
+![To-be Section 2 ADC9](./05_Images/TI_S2_DAC9.jpg) 
+After completing the dunning address correction process, the scenario's output (number of corrected addresses and number of failed matches) will be displayed to the user (Figure 2, B). The Exclusive Gateway (Figure 2, C) determines the paths based on whether there are failed matches or not. 
+
+If there are no failed matches, the process continues with the user task to execute the dunning run(Figure 2, E). The user will receive a task on the tasklist where they can check the checkbox when it's done. This task is still a user task, as the user has to click a button (and another bottom to confirm) to execute the dunning run.
+If the match was unsuccessful, the user gets a task in the tasklist to manually correct the failed matches (Figure 2, D). When all the failed matches are corrected, the process continues with executing the dunning run (Figure 2, E).
+
+After the execution of the dunning run, the parallel gateway (Figure 2, F) will divide the dunning notices based on whether they are sent by e-mail or Post. It is a parallel gateway as, based on the Feuerwächter AG, there are e-mail and post notices in every dunning run.
 
 
 **Splitting of the PDF**
 
 Dunning notices, which do not have an e-mail address associated have to be sent via post. For this purpose, a PDF file, containing all Dunning notices of the current run, has to be downloaded from SAP which is then split into individual notices and the ones to be sent via post are printed for further processing. In this part of the process, we are looking into the splitting of the PDF file (Figure 1).
 ![To-be Section 2 PDF Overview](./05_Images/TI_S2_PDF.jpg) 
+
 
 The service task to initiate the splitting of the PDF file (Figure 1, B) is activated once the PDF file has been downloaded in the previous user task (Figure 1, A). It will then take the large PDF containing all dunning notices, split them, sort them by moving all notices which have been sent via e-mail to a different folder, and renaming the notices to be sent via Post indicating the customer’s name and account for easy identification. This is modelled in make using three scenarios (Figures 2a, 2b, and 2c).
 ![To-be Section 2 PDF1](./05_Images/TI_S2_PDF1.jpg) 
