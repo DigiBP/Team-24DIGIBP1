@@ -269,6 +269,7 @@ The second path is selected for all others and then differentiated in the “Whi
 ![To-be Section 1 Decision Table DMN 18](./05_Images/TI_S1_DT_DMN18.jpg)
 
 First, however, the receipt of the dunning information is awaited via a message intermediate catch event. As soon as the information has been received via the message event, the user is assigned a task in which he is to check the dunning information received (D). This is displayed as follows: 
+
 ![To-be Section 1 Decision Table DMN 19](./05_Images/TI_S1_DT_DMN19.jpg)
 
 This display allows the employee to see all the necessary information directly from the dunning list without having to consult it. The employee therefore has the relevant data to decide what exactly should be done with this claim, whether it should be dunned or not, or whether it should be forwarded to the Credit Reform debt collection agency or not.
@@ -276,15 +277,63 @@ Continuing with the second path with Code 0 and therefore dunning block. The set
 
 ![To-be Section 1 Decision Table DMN 20](./05_Images/TI_S1_DT_DMN20.jpg)
 If the Finance Department employee decides that the dunning block is unjustified and the item still needs to be dunned, they must revise the comment and change the dunning Code (I) directly in SAP (in our case in the Google Spreadsheet) so that the correct dunning notice is sent.
+
 ![To-be Section 1 Decision Table DMN 21](./05_Images/TI_S1_DT_DMN21.jpg)
 
 Finally, there is the third path. This has Code 5 and leads to the corresponding data being forwarded to Credit Reform in section 2 to drive the debt collection there. However, if Code 5 has been decided by the decision table, it must also first be checked manually by a user (E). If the employee comes to the conclusion that forwarding to Credit Reform is required, the employee must confirm Code 5 (F) in the task list.
+
 ![To-be Section 1 Decision Table DMN 22](./05_Images/TI_S1_DT_DMN22.jpg)
 If Code 5 is not justified and the position is not to be forwarded to Credit Reform, the user must change to Code 0 manually (G) to make sure, that the case will not be forwarded to Credit Reform. 
+
 ![To-be Section 1 Decision Table DMN 23](./05_Images/TI_S1_DT_DMN23.jpg)
 
 This process automatization helps that the majority of items can already be decided via the decision table. Some (Code 0 and 5) still have to be checked by a user and by executing the corresponding user tasks, but most of them will be handled automatically.
 ### Section 2
+In the second section we will discuss the following implementations:
+
+3.	Debt Collection
+4.	Dunning Address Correction
+5.	Splitting Dunning Notices PDF
+
+![To-be Section 2 Overview](./05_Images/TI_S2_Overview.jpg)
+
+**Debt Collection**
+
+![To-be Section 2 DC1](./05_Images/TI_S2_DC1.png)
+
+We partly automated the debt collection process. Before we get to the subprocess, one user and one system task have to be completed. First the payments need to be reconciled again to consider payments that arrived in the meantime since the process was started (Figure 1, A). Next, the Code allocated to the unpaid invoices needs to be checked, if a dunning notice will be sent to the customer, or if the invoice is handed over to the debt collection office CreditReform (Figure 1, B1). This check is performed automatically using a make scenario (Figure 3) which is initiated by the system task. The message catch event (Figure 1, B2) is added to receive the variables indicating what types of dunning Code are included in the current run, there are two variables, Code5 and CodeOther. Both of the variables can be true at the same time, however Code5 does not always have to be true, therefore we use the OR-gateway (Figure 1, C) to direct the process flow, either going both directions or just down and skipping the dept collection subprocess. The configuration of the message event is shown in Figure 2.
+
+![To-be Section 2 DC2](./05_Images/TI_S2_DC2.jpg)
+![To-be Section 2 DC3](./05_Images/TI_S2_DC3.jpg)
+
+The identification of Codes included in the dunning run are done in a make scenario (Figure 3). First a “Webhook” module (Figure 3, A) is triggered by the system task in Camunda (Figure 1, B1). Next, we consult the dunning list using the “Google Sheets Search Rows” module (Figure 3, B), where we retrieve all values from the list (Figure 4). Using the “Tools Table aggregator” module (Figure 3, C), we create an aggregation of all the dunning Codes included in the current run (Figure 5). The “Router” module (Figure 3, D) splits the scenario flow into two to account for the two possible outcomes. Namly that Code 5 is included beside other Codes or that Code 5 is not included. For this reason, a filter directs the flow accordingly by assessing whether the text (i.e. the aggregated Code numbers) contain Code 5 (Figure 6). If this validates to true, the process passes through, otherwise it goes the other direction of the default flow. Lastly, to send the information back to Camunda to pass through the OR-gateway, a “HTTP” module (Figure 3, F) is used to send the variables back. In case Code 5 is included, both variables are set to “true” otherwise only the CodeOther variable is set to true and Code5 to false (Figure 7).
+
+![To-be Section 2 DC4](./05_Images/TI_S2_DC4.jpg) ![To-be Section 2 DC5](./05_Images/TI_S2_DC5.jpg) ![To-be Section 2 DC6](./05_Images/TI_S2_DC6.jpg) ![To-be Section 2 DC7](./05_Images/TI_S2_DC7.jpg)
+
+Assuming that dunning notices with Code 5 were identified, we move on to the debt collection subprocess. First an employee needs to send an e-mail to the debt collection office CreditReform with the overview of positions that they will have to handle (Figure 1, D). Afterwards we arrive at an event-based gateway (Figure 1, E) where we wait for one of two things to happen, either a confirmation of receipt is sent back by CreditReform (Figure 1, F) or three days pass by without any notice (Figure 1, G). If no notice is obtained, an employee needs to follow-up with CreditReform (Figure 1, H). The check, whether a confirmation was obtained is automated using a make scenario. (Figure 7) consisting of four modules. First, we use the “Gmail Watch e-mails” module (Figure 7, A) to look out for the confirmation of the debt collection office. We configured the module (Figure 8) to look out for e-mails in the inbox with a specific subject line “Debt Collection Confirmation”, we use this approach to identify the e-mail, as we would expect the e-mail to be a standard e-mail with the same subject every time. Of course, if the sender would always be the same, then this could also be incorporated as an identification 
+
+![To-be Section 2 DC8](./05_Images/TI_S2_DC8.jpg)
+
+Once the e-mail has been identified, the attachment with the overview of the invoices in debt collection are automatically filed using the “Google Drive Upload a File” module (Figure 7, B). For this purpose, we use the information of the first module “Watch e-mails” to specify the attachment and its name and data (Figure 9). Figure 9a shows the filed attachment on Google Drive.
+
+![To-be Section 2 DC9](./05_Images/TI_S2_DC9.jpg) ![To-be Section 2 DC10](./05_Images/TI_S2_DC10.jpg) ![To-be Section 2 DC11](./05_Images/TI_S2_DC11.jpg)
+
+Following the attachment filing, using the module “Gmail move an e-mail” (Figure 7, C), we move the e-mail from the inbox to a specific folder, where all the confirmation e-mails are stored for audit purposes (Figure 10). Figure 11 shows the inbox, label A indicates the inbox to which the e-mail was moved and label B the confirmation e-mail we received.
+
+![To-be Section 2 DC12](./05_Images/TI_S2_DC12.jpg) ![To-be Section 2 DC13](./05_Images/TI_S2_DC13.jpg)
+
+Lastly, to allow the process to proceed in Camunda, we use an HTTP module (Figure 7, D) to send the confirmation of successful completion back to Camunda. We configured the body of the message to contain the message name as defined in the receive task in Camunda and send the variable “Debt_Collection_Confirmation=received”, which triggers the continuation of the process (Figure 12).
+
+![To-be Section 2 DC14](./05_Images/TI_S2_DC14.jpg) 
+
+**Dunning address correction**
+
+![To-be Section 2 ADC Overview](./05_Images/TI_S2_DAC_Overview.jpg) 
+
+The correct dunning address task will use all the “Debitornummer” from each position on the dunning list to match them to the Master database, where the “Debitornummer” will be matched. If they are matched, information like the customer's name, the “Konto,” the postal address, and the email address (where applicable) will be added to the dunning list sheet. This will be done with a make scenario. 
+
+
+
 ### Section 3
 
 ## 💻 Technologies used
