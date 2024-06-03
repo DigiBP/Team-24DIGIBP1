@@ -333,8 +333,92 @@ Lastly, to allow the process to proceed in Camunda, we use an HTTP module (Figur
 The correct dunning address task will use all the “Debitornummer” from each position on the dunning list to match them to the Master database, where the “Debitornummer” will be matched. If they are matched, information like the customer's name, the “Konto,” the postal address, and the email address (where applicable) will be added to the dunning list sheet. This will be done with a make scenario. 
 
 
+**Splitting of the PDF**
+
+Dunning notices, which do not have an e-mail address associated have to be sent via post. For this purpose, a PDF file, containing all Dunning notices of the current run, has to be downloaded from SAP which is then split into individual notices and the ones to be sent via post are printed for further processing. In this part of the process, we are looking into the splitting of the PDF file (Figure 1).
+![To-be Section 2 PDF Overview](./05_Images/TI_S2_PDF.jpg) 
+
+The service task to initiate the splitting of the PDF file (Figure 1, B) is activated once the PDF file has been downloaded in the previous user task (Figure 1, A). It will then take the large PDF containing all dunning notices, split them, sort them by moving all notices which have been sent via e-mail to a different folder, and renaming the notices to be sent via Post indicating the customer’s name and account for easy identification. This is modelled in make using three scenarios (Figures 2a, 2b, and 2c).
+![To-be Section 2 PDF1](./05_Images/TI_S2_PDF1.jpg) 
+
+We first start with scenario 2a, where a webhook triggered by the Camunda service tasks initiates the process (Figure 2a, A1). To continue the process flow within Camunda, we directly use the “Webhook Response” module (Figure 2a, A2), since no additional information needs to get back to the Camunda process until the third make scenario in the PDF splitting part. 
+
+In the process diagram (Figure 1), we now move on from the service task to the event gateway (Figure 1, C). This is set-up similarly to the event gateway of the debt collection confirmation. In this case we wait to either receive a confirmation that the PDFs were successfully split (Figure 1, D) or that 30 minutes have passed (Figure 1, E), in which case manual intervention is required (Figure 1, F). The confirmation generation is modelled in the third make scenario (Figure 2c).
+
+After the initiation of the make scenario, we then proceed to search for the PDF file using the “Google Drive Search for Files/Folders” module  (Figure 2a, B) within the folder “Dunning Notices Post” (Figure 3). Figure 3a shows the Google Drive folder with the file that needs to be split. Then we download the file using the “Google Drive Download a File” module (Figure 2a, C) for further processing (Figure 4).
+
+![To-be Section 2 PDF2](./05_Images/TI_S2_PDF2.jpg) ![To-be Section 2 PDF3](./05_Images/TI_S2_PDF3.jpg) ![To-be Section 2 PDF4](./05_Images/TI_S2_PDF4.png) 
+
+Next, we use the “PDF.co Split a PDF” module (Figure 2a, D) that allows processing of PDFs in various ways. First, we separate the large PDF into the individual notices, using the e-mail address of Feuerwächter AG’s contact person listed within the PDF file as the indicator of a new notice and as such where to cut the file (Figure 4). In the next module, “PDF.co Parse a Document” (Figure 2a, E), the separated PDF files are parsed (Figure 5). We do this, to obtain information from within the PDF files to give the PDFs useful names. This is done in the next step, using the “Google Drive Upload a File” (Figure 2a, F) module where we upload the individual PDFs back into the folder where the initial file is stored (Figure 6). The files initially were only named by their pages within the large file, with the parsing however, we can add the customers’ account numbers to make them identifiable (Figure 6, A). Figure 6a shows the output of this upload and renaming.
+![To-be Section 2 PDF5](./05_Images/TI_S2_PDF5.jpg) 
+
+To end the first make scenario, we need to initiate the second scenario. For this purpose, we use the “HTTP Make a request” module (Figure 2a, I). However, we have several documents PDF files that are generated, but only need the following scenario to be initiated once. For this reason, we use the “Tools Increment function” module (Figure 2a, G), which gives each cycle (document output) a number. We then use the filter (Figure 2a, H), to only pass on the first one.
+
+![To-be Section 2 PDF6](./05_Images/TI_S2_PDF6.jpg) 
+The goal of the second make scenario (Figure 2b) is to move all PDF dunning notices which have already been sent to the customers via e-mail into a different folder. This is intended to ensure only the dunning notices intended to be sent via post are sent in the end. As indicated above, the scenario starts with a webhook module (Figure 2b, A) which is triggered by the previous HTTP module (Figure 2a, I). Following right after the scenario initiation the “Tools Sleep” module (Figure 2b, B) pauses the scenario for 4 minutes (240 sec), to give the first scenario enough time to upload all the individual PDF notices (Figure 8).
+
+![To-be Section 2 PDF7](./05_Images/TI_S2_PDF7.jpg) 
+Once the timer is up, the scenario continues with the search for the individual PDF dunning notices using the “Google Drive Search for Files/Folder” module (Figure 2b, C). As search query, we use the part of the file names that are the same for all of them “Dunning_letters” (Figure 9). To determine, whether a dunning notice was sent via e-mail, we have to compare against the dunning list, which we store as a Google Sheet. To achieve this, we use the “Google Sheets Search Rows” module (Figure 2b, D) and look up the file in the corresponding tab. Only entries that have an e-mail address associated and where the lines are not empty are selected (Figure 10). Before we move on to the next module, we added a filter (Figure 2b, E) comparing whether a file, based on its name, contains the account number according to the Google sheet search (Figure 11). Only the files where this comparison is true move on to the next module.
+
+![To-be Section 2 PDF8](./05_Images/TI_S2_PDF8.jpg.png) ![To-be Section 2 PDF9](./05_Images/TI_S2_PDF9.jpg) ![To-be Section 2 PDF10](./05_Images/TI_S2_PDF10.jpg) 
+
+We use the “Google Drive Move a File/Folder” module (Figure 2b, F) to move the files to a separate folder. Based on the evaluation using the filter, we know which files should be moved, because they have already been sent via e-mail (Figure 12). Figure 12a shows the dunning notices moved to the separate folder “Sent via e-mail”. Before we send the HTTP request, we also add a “Tools Increment function” module (Figure 2b, G), to give each cycle (or file in this case) a number (Figure 13). This number is then used in the following filter (Figure 2b, H), where only the first cycle passes through to initiate the HTTP request (Figure 14), since only one initiation of the third scenario is needed. To finalize the scenario, we use the HTTP module (Figure 2b, I) to trigger the Webhook of the third scenario.
+
+![To-be Section 2 PDF11](./05_Images/TI_S2_PDF11.jpg) 
+
+![To-be Section 2 PDF12](./05_Images/TI_S2_PDF12.jpg) 
+The third make scenario (Figure 2c) is very similar to the second on with three exceptions. The first difference is in the “Google Sheets Search Rows” module (Figure 2c, D), where we look for the customers that do not have an e-mail address associated, since we want to identify the customers that will receive the dunning notice by post (Figure 15). The second difference is the “Google Drive Update File” module (Figure 2c, F), in this case we don’t want to move any files but rename them using the customer’s name and account number (Figure 16). Figure 16a shows the updated files in Google Drive. The last difference lies in the execution details of the “HTTP Make a request” module (Figure 2c, I). The message in this case is not directed at another make scenario, but at Camunda in order to pass the event-based gateway (Figure 1, C) toward the message catch event (Figure 1, D). To do this, we send a message, similar to the debt collection confirmation, where we indicate the message name based on the message configured in Camunda sending the variable Confirmation_PDF_Split=received (Figure 17). Once the message has been received the subprocess is finalized.
+
+![To-be Section 2 PDF13](./05_Images/TI_S2_PDF13.jpg.png) 
+![To-be Section 2 PDF14](./05_Images/TI_S2_PDF14.jpg.png) 
+![To-be Section 2 PDF15](./05_Images/TI_S2_PDF15.png) ![To-be Section 2 PDF16](./05_Images/TI_S2_PDF16.png) 
+
+The remaining scenario works the same way as the second one (Figure 2b). After the Webhook module (Figure 2c, A), the “Tools Sleep” module (Figure 2c, B) is initiated, pausing for 2 minutes (120 sec) to give the first scenario enough time to upload all the individual PDF notices (Figure 18).
+
+![To-be Section 2 PDF17](./05_Images/TI_S2_PDF17.png) 
+Once the timer is up, the scenario continues with the search for the individual PDF dunning notices using the “Google Drive Search for Files/Folder” module (Figure 2c, C). As search query, we use the part of the file names that are the same for all of them “Dunning_letters” (Figure 19). To determine, whether a dunning notice will be sent via post, we compare against the dunning list, as explained above using the Google Sheet search (Figure 2c, D). Only entries that have an e-mail address associated and where the lines are not empty are selected (Figure 15). Before we move on to the next module, we added a filter (Figure 2c, E) comparing whether a file, based on its name, contains the account number according to the Google sheet search (Figure 20). Only the files where this comparison is true move on to the next module.
+
+![To-be Section 2 PDF18](./05_Images/TI_S2_PDF18.png) ![To-be Section 2 PDF19](./05_Images/TI_S2_PDF19.png)
+As explained above already, next we rename the files using the Google Drive update module (Figure 2c, F). Before we send the HTTP request, we also add a “Tools Increment function” module (Figure 2c, G), to give each cycle (or file in this case) a number (Figure 21). This number is then used in the following filter (Figure 2c, H), where only the first cycle passes through to initiate the HTTP request (Figure 22), since only one message to Camunda is needed. After that, the third scenario is finalized using the HTTP request module (Figure 2c, I).
+
+![To-be Section 2 PDF20](./05_Images/TI_S2_PDF20.png) ![To-be Section 2 PDF21](./05_Images/TI_S2_PDF21.png)
 
 ### Section 3
+In the third section we will discuss the following implementations:
+
+6.	Dunning Letters via Post
+7.	Dunning Letters via E-mail
+
+![To-be Section 3 Overview](./05_Images/TI_S3_Overview.png)
+
+**Dunning Letters via Post**
+
+![To-be Section 3 DLP1](./05_Images/TI_S3_DLP1.png)
+Sending the dunning notices via post is of course a manual process (Figure 1), which we modelled as a subprocess. Firstly, the letters need to be prepared, meaning the PDF files we split previously in section 2, part 5 need to be printed and put in an envelope (Figure 1, A). Next, the letters are sent via post (Figure 1, B). Afterwards, the process waits for seven days, to ensure all letters were received and none are returned (Figure 1, C). We chose seven days as a waiting period, as Feuerwächter AG’s customers are within Switzerland and we assume that this time period should be enough, to have the letter returned. The timer event configuration can be seen in Figure 2. After the waiting period, an employee needs to check if any letters were returned, if not, the process ends (Figure 1, D). For this purpose, we have added form fields to the user task (Figure 3), the settings of the form can be seen in Figure 4. On the outgoing arrows of the exclusive gateway, we added the conditions of the form, see configuration in Figure 5 for the “no” condition as an example.
+
+![To-be Section 3 DLP2](./05_Images/TI_S3_DLP2.jpg)
+If a letter is returned, an employee needs to try and contact the customer to inquire about the correct address (Figure 1, F).Here we have added again a form, for the employee to select whether he was able to reach the customer (Figure 6), the settings of the form are the same as in Figure 4 and 5 with the exception of the name of course. If the customer cannot be reached, the employee needs to contact the commune to obtain the correct address (Figure 1, H). After receiving correct address, the customer’s data has to be updated (Figure 1, I) and the letter resent (Figure 1, J).
+
+![To-be Section 3 DLP3](./05_Images/TI_S3_DLP3.png)![To-be Section 3 DLP4](./05_Images/TI_S3_DLP4.png)
+
+**Dunning Letters via E-mail**
+
+![To-be Section 3 DLE](./05_Images/TI_S3_DLE.png)
+To send the dunning notices via e-mail, we have created a subprocess to automatically send the e-mails to the customers including the attachment with the dunning notice (Figure 1). First a system task initiates the sending of the dunning notice (Figure 1, B), we then check for errors during the processing. Once the successful sending could be confirmed, we check if any e-mails were returned due to invalid e-mail addresses with a message receive (Figure 1, F) and timer task (Figure 1, G). The set up of the assessment of successful e-mail sending is similar to the start of the process, where we also check if the reminder e-mail was sent as intended. For this reason, we add again a variable to the flow (arrow) between the start event and the system task (Figure 1, A) with the variable “Dunning_status=unsuccessful”. The system task “Send dunning email” triggers the make scenario (Figure 2).
+
+![To-be Section 3 DLE1](./05_Images/TI_S3_DLE1.png)
+After the scenario has been triggered by the webhook module (Figure 2, A), we perform a search in the dunning list in Google Sheets, using the “Google Sheets Search Rows (Advanced)” module (Figure 2, B), to identify all the customers with an e-mail address associated (Figure 3). In the actual process, SAP is used to send the dunning notices via e-mail automatically, we simulate this for our project. Since we cannot retrieve the PDF files, we use a Google Drive folder in which we filed the dunning notices which will then be sent as attachments. Therefore, based on the results of the Google Sheets search, we access this Google Drive folder and search for the relevant files, using the “Google Drive Search for Files/Folders” module (Figure 2, C), based on the customer account number (Figure 4). In the following Google Drive module, “Download a File” (Figure 2, D), the individual PDFs are downloaded.
+
+![To-be Section 3 DLE2](./05_Images/TI_S3_DLE2.png) ![To-be Section 3 DLE3](./05_Images/TI_S3_DLE3.png)
+We use the Gmail module “Send an E-mail” (Figure 2, E), to send out the dunning notices. We retrieve the e-mail addresses from the Google Sheet, composed the e-mail body using HTML format and add the downloaded PDF dunning notices as attachments (Figure 5). Lastly, a confirmation is sent to Camunda, using the “Weebhook response” module (Figure 2, F), to continue with the process, by sending the variable “Dunning_status=successful” (Figure 6).
+
+![To-be Section 3 DLE4](./05_Images/TI_S3_DLE4.png) ![To-be Section 3 DLE5](./05_Images/TI_S3_DLE5.png)
+In Camunda, we use an exclusive gateway (Figure 1, C), to determine whether the sending of the e-mail was successful or not. If the scenario in make did not run properly, then no variable will have been returned, and the variable we added at the beginning of the process (Figure 1, A), will remain active. As a result, at the gateway the “unsuccessful” direction will be taken, and manual intervention will be required. If, however, the scenario ran successfully, the process can continue to the event based gateway (Figure 1, E). This gateway was added to catch returned e-mails due to invalid e-mail addresses. Therefore, we will wait for one of two events to happen, either 30 minutes pass by (Figure 1, G) or a message is sent to Camunda with the information that an e-mail has been returned (Figure 1, F). In that case, manual intervention is required to assess the issue and to contact the client to correct the e-mail address or send the notice via post (Figure 1, H). The identification of returned e-mails is done using a make scenario (Figure 7).
+
+![To-be Section 3 DLE6](./05_Images/TI_S3_DLE6.png)
+Similar to the debt collection confirmation, the trigger of the scenario is a Gmail “Watch E-mails” module (Figure 7, A). In that module we are watching for e-mails from the mailer-daemon service informing about delivery issues (Figure 8). Once an e-mail has been identified, we use the “Gmail Move an Email” module (Figure 7, B) to move it to a specific folder where all error messages are saved (Figure 9). Lastly, to inform Camunda of the error, a message is sent via HTTP request (Figure 7, C), in which we send the message that an error has occurred (Figure 10).
+
+![To-be Section 3 DLE7](./05_Images/TI_S3_DLE7.jpg)
 
 ## 💻 Technologies used
 
