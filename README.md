@@ -35,7 +35,7 @@ The FeuerWächter AG is a SME with 177 employees and is part of the internationa
 This project focuses on the dunning process, which will be executed every two weeks on Tuesday. The process is mainly located in SAP. Other tools used in the process are an advanced PDF tool, Excel, and Outlook. The modelling is done based on the Dunning run instructions document and further feedback from the finance department. A dunning run includes about 300 reminders, the majority of which are emailed. Around 50 dunning blocks will be set per dunning run. Setting a dunning block does not trigger a dunning notice during the dunning block. A valid reason is required to set a dunning block. The finance department will decide whether the reason is valid or not based on the description.
 
 # 🔎 As-is Process
-The BPMN models for all processes mentioned in this readme can be found in the "Models" 
+The BPMN models for all processes mentioned in this readme can be found in the "Models". 
 
 ![Overview As-is Process](./05_Images/As_is_Process_Overview.jpg)
 
@@ -144,12 +144,14 @@ The company distinguishes between two different billing addresses the “Konto�
 When the dunning run is executed, an email with a dunning notice as a pdf in the attachment is automatically sent to customers who have opted to receive dunning notice via email. However, some customers still prefer to receive dunning notice via post. To send these dunning notice via post, the finance department needs to extract a PDF containing all the dunning notice from SAP, save it onto their computer, and manually extract the corresponding PDF from the large PDF file to print it.
 
 # 🔄 To-Be Process
-This section addresses the to-be process.
+This section addresses the to-be process. The BPMN models for the To-Be Process can be found in the "Models". 
 
 ## 🤔 Assumptions
 We assumed that a new role in SAP could be created for our to-be process. This role would have limited access. It would have access to open the dunning list and add comments to the corresponding dunning position. However, the role can not make any other changes to the dunning positions or execute a dunning run. The creation of this role would make the process leaner. 
 
 ## 📄 Description To-Be Process
+
+The process is triggered every second Thursday instead of Tuesday. The first activity automatically generates an email to the department heads, informing them to check the dunning list and set a dunning block where applicable. With the creation of the new role, the department heads are able to enter a comment directly into the dunning list. The process continues on Tuesday in the Finance Department, where comments of the department heads are classified in a decision table to check whether the dunning block is valid or not automatically. More detailed information about the decision table can be found in [Section 2](#section-2) . The next step involves checking the payment reconciliation by a user, similar to the as-is process. Furthermore, it will be checked whether there is a third reminder or more. If yes, these positions will be separated from the list and will be sent with a copy of the invoice to the CreditReform. When we receive the confirmation that the CreditReform received our request, the process is over for these positions. If it is not the third reminder or more, the list moves on to the task of correcting the dunning address. The detailed description of this task can be found in  [Section 3](#section-3) . Then, the dunning run will be executed by a user. If the customer has an email address stored in the customer database, they will receive an email. If there is no email in the customer database, they will receive the dunning notice by post. The next task is to send the dunning notices by email. Check whether all emails are sent successfully, if not, a user sends them manually. Next, the email status will be automatically checked. If no email is returned, the process is over. If there are emails returned, a user resolves them and the process is over. For dunning notices sent by post, the finance department first downloads all the dunning notices, then they will be separated into separate PDFs. Then the letter gets prepared and sent. The process is over when the letter is sent.
 
 ## 💡 Benefits
 -	Less manual work 
@@ -191,6 +193,31 @@ The process for deciding which reminder code to set starts with the service task
 The Make scenario below is initiated by the mentioned service task. The service task triggers the webhook (1), which then consults the dunning run list in SAP (in our case, a Google Spreadsheet) (2).
 
 ![To-be Section 1 Decision Table F1-3](./05_Images/TI_S1_DT_123.jpg)
+![To-be Section 1 Decision Table Figure 2](./05_Images/TI_S1_DT_2.jpg)
+
+The consulted dunning list looks like this:
+![To-be Section 1 Decision Table Example Dunning List](./05_Images/TI_S1_DT_DR.jpg)
+
+The response returned by the webhook ultimately refers to the number of bundles (rows in the Google Spreadsheet) counted in this Make scenario and is then returned via the Webhook (3) to Camunda. The chosen variable "no" is subsequently used as the loop cardinality for the subprocess. In the above dunning list the variable “no” corresponds to 5.
+![To-be Section 1 Decision Table Figure 3](./05_Images/TI_S1_DT_3.jpg)
+
+The subprocess is set up sequentially and is to be executed as many times as the previous Make scenario counts bundles in SAP, i.e., the number of dunning items. The reason for this is that the decision on which reminder Code to set must be made separately for each dunning item. To ensure that the loop cardinality is adjusted if the number of dunning items changes, this was counted using the previous Make scenario and then used as the loop cardinality.
+![To-be Section 1 Decision Table Overview](./05_Images/TI_S1_DT_Overview.jpg)
+Finally, within the subprocess, another service task "Transfer instance from Spreadsheet" (A) is necessary. This triggers the subsequent Make scenario.
+
+![To-be Section 1 Decision Table Make Secenario](./05_Images/TI_S1_DT_1_5.jpg)
+The Make Scenario starts again via the Webhook (1) for the connection to Camunda. Then, in the Google Sheets Search Rows module (2), the dunning run list (Google Spreadsheet) is consulted again to retrieve the dunning items. In the JSON module (3), the three data points from the columns "Kommentar", "Überfällig seit" and "letzter MahnCode" are retrieved, as these are the data needed for the decision table.
+
+![To-be Section 1 Decision Table Make Figure 2.2](./05_Images/TI_S1_DT_2.2.jpg) ![To-be Section 1 Decision Table Make Figure 3.2](./05_Images/TI_S1_DT_3.2.jpg)
+
+![To-be Section 1 Decision Table DR2](./05_Images/TI_S1_DT_DR2.jpg)
+
+A filter (4), structured as follows, had to be added between the two modules JSON (3) and Webhook (5). The loopCounter ensures that the sequential execution of the subprocess is not always related to the top row of the Google Spreadsheet, but rather moves to the second row after the first row is checked, and so on. The +1 in the loopCounter is needed to skip the header of the Google Spreadsheet and not start with it. The Webhook (5) ultimately responds back to Camunda with the JSON string.
+![To-be Section 1 Decision Table Make Figure 4](./05_Images/TI_S1_DT_4.jpg) ![To-be Section 1 Decision Table Make Figure 5.2](./05_Images/TI_S1_DT_5.jpg)
+
+The bundles forwarded from the Make scenario to Camunda are now sequentially checked through the decision table (B) and then follow the path corresponding to the decision. The DMN and the decision table are structured as follows:
+![To-be Section 1 Decision Table DMN](./05_Images/TI_S1_DT_DMN.jpg)
+
 
 ### Section 2
 ### Section 3
