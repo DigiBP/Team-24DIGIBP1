@@ -14,11 +14,8 @@ This project was completed during the Spring semester of 2024 as part of the cou
     - [Section 1](#section-1)
     - [Section 2](#section-2)
     - [Section 3](#section-3)
-- [💻 Technologies Used](#technologies-used)
 - [▶️ Running the Process](#running-the-process)
 - [🙏 Acknowledgements](#acknowledgements)
-
-
 
 
 ### 👩‍💻 Team Members 
@@ -420,14 +417,12 @@ Similar to the debt collection confirmation, the trigger of the scenario is a Gm
 
 ![To-be Section 3 DLE7](./05_Images/TI_S3_DLE7.jpg)
 
-## 💻 Technologies used
-
 ## ▶️ Running the Process
 
 Follow these instructions to run the process:
-- ..
-- ...
-
+- Download the Camunda files 
+- Open the files in Camunda 7
+- deploy the Proess incl. the forms 
 
 
 ## 🙏 Acknowledgements
