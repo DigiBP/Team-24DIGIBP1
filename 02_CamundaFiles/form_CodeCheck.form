@@ -1,0 +1,45 @@
+{
+  "components": [
+    {
+      "text": "Which code?",
+      "label": "Text view",
+      "type": "text",
+      "layout": {
+        "row": "Row_1aj1r03",
+        "columns": null
+      },
+      "id": "Field_13wtveo"
+    },
+    {
+      "label": "Code 1-4",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_0k7f5bb",
+        "columns": null
+      },
+      "id": "Field_0szzekd",
+      "key": "CodeOther",
+      "description": "Code 1-4"
+    },
+    {
+      "label": "Code 5",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_0flr673",
+        "columns": null
+      },
+      "id": "Field_1ni0pgb",
+      "key": "Code5",
+      "description": "Code 5"
+    }
+  ],
+  "type": "default",
+  "id": "WhichCode",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.4.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.20.0"
+  },
+  "schemaVersion": 15
+}

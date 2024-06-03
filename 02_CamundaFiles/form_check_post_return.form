@@ -1,0 +1,44 @@
+{
+  "components": [
+    {
+      "text": "Was a letter returned?",
+      "label": "Text view",
+      "type": "text",
+      "layout": {
+        "row": "Row_032c926",
+        "columns": null
+      },
+      "id": "Field_0mf235j"
+    },
+    {
+      "values": [
+        {
+          "label": "Yes",
+          "value": "Yes"
+        },
+        {
+          "label": "No",
+          "value": "No"
+        }
+      ],
+      "label": "Select",
+      "type": "select",
+      "layout": {
+        "row": "Row_11n8eoe",
+        "columns": 16
+      },
+      "id": "Field_0c73zq7",
+      "key": "LetterReturned",
+      "defaultValue": "<none>"
+    }
+  ],
+  "type": "default",
+  "id": "LetterReturned",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.4.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.20.0"
+  },
+  "schemaVersion": 15
+}

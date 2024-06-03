@@ -1,0 +1,848 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:biodi="http://bpmn.io/schema/dmn/biodi/2.0" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="DMNModelJomos" name="DRD" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="5.20.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.20.0">
+  <decision id="DecisionTable123" name="Set dunning block">
+    <informationRequirement id="InformationRequirement_0hfen3p">
+      <requiredInput href="#InputData_0hnakdt" />
+    </informationRequirement>
+    <informationRequirement id="InformationRequirement_10oxu18">
+      <requiredInput href="#InputData_0rs8f76" />
+    </informationRequirement>
+    <informationRequirement id="InformationRequirement_1i2kvjy">
+      <requiredInput href="#InputData_0d7bvbo" />
+    </informationRequirement>
+    <informationRequirement id="InformationRequirement_1032jla">
+      <requiredInput href="#InputData_0gptsrn" />
+    </informationRequirement>
+    <informationRequirement id="InformationRequirement_1eey7i4">
+      <requiredInput href="#InputData_012y3dw" />
+    </informationRequirement>
+    <knowledgeRequirement id="KnowledgeRequirement_1p36aa9">
+      <requiredKnowledge href="#BusinessKnowledgeModel_0cab0gu" />
+    </knowledgeRequirement>
+    <authorityRequirement id="AuthorityRequirement_1asfaw7">
+      <requiredAuthority href="#KnowledgeSource_1m2s3m5" />
+    </authorityRequirement>
+    <decisionTable id="DecisionTable_0up7r6a" hitPolicy="FIRST">
+      <input id="Input_1" biodi:width="192" camunda:inputVariable="Kommentar">
+        <inputExpression id="InputExpression_1" typeRef="string" expressionLanguage="feel">
+          <text>Kommentar</text>
+        </inputExpression>
+        <inputValues id="UnaryTests_15wdysl">
+          <text>"Lieferverzug","Grosskunde","Mahnsperre andere Gründe","Fehler Feuerwaechter AG"</text>
+        </inputValues>
+      </input>
+      <input id="InputClause_1tsqjxd" biodi:width="192" camunda:inputVariable="Ueberfaelligseit">
+        <inputExpression id="LiteralExpression_0yi92rh" typeRef="integer">
+          <text>Ueberfaelligseit</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_1gveznu" camunda:inputVariable="letzterMahncode">
+        <inputExpression id="LiteralExpression_054wxf6" typeRef="integer">
+          <text>letzterMahncode</text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" label="Mahnung" name="Mahnung" typeRef="boolean" />
+      <output id="OutputClause_1p4a0zr" label="Mahncode" name="Mahncode" typeRef="string" biodi:width="192" />
+      <rule id="DecisionRule_0v1aylh">
+        <description>Wenn der Fehler bei Feuerwächter AG liegt, keine Mahnung -&gt; Mahnsperre und Abklärung/Bearbeitung durch User erforderlich</description>
+        <inputEntry id="UnaryTests_0rtqili">
+          <text>"Fehler Feuerwaechter AG"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1w9i367">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1wcsuye">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0k2h6et">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0dhco28">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1xzopto">
+        <description>Bei Lieferverzug, keine Mahnung -&gt; Mahnsperre und Abklärung/Bearbeitung durch User erforderlich</description>
+        <inputEntry id="UnaryTests_0dl3etq">
+          <text>"Lieferverzug"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0qkdlt1">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0zqmwwn">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0xiqb1y">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_030wj3t">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0wlc7xf">
+        <description>Bei anderen Gründen (Ausnahmen) für eine Mahnsperre.</description>
+        <inputEntry id="UnaryTests_1lmbqv3">
+          <text>"Mahnsperre andere Gründe"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1k0p1h6">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1ro4cd4">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_13zps29">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1hzwik7">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1qc9zko">
+        <description>Grosskunde: Der Fall war im Vormonat auf Mahnsperre gesetzt und muss daher weiterhin abgeklärt und bearbeitet werden, es darf keine Mahnung raus. Manuelle Bearbeitung.</description>
+        <inputEntry id="UnaryTests_1lpndqo">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0ecjhce">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0rlb74t">
+          <text>0</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0kia0ic">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_07qckg8">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1eoired">
+        <description>Grosskunde: Fall ist gemäss Code Vormonat (5 = Fall bei Creditreform) bei Creditreform -&gt; Stand abklären, keine Mahnung versenden.</description>
+        <inputEntry id="UnaryTests_0nk595k">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1fuwkok">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1wzwc3a">
+          <text>5</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1lh1jgq">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_16nmxy1">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1ckztde">
+        <description>Grosskunde hat bereits die 2. Mahnung erhalten. Nächste Konsequenz wäre die Weiterleitung an Creditreform, bei Grosskunden gut zu überlegen -&gt; Manuelle Bearbeitung notwendig. Keine Mahnung versenden.</description>
+        <inputEntry id="UnaryTests_07003t7">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0o66l9p">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_12ky6hf">
+          <text>4</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0m4uv0i">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1ak6w1o">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1vlhjoo">
+        <description>Grosskunde, mehr als 45 Tage überfällig und letzte Mahnung war 1. Mahnung mit Betreibungsandrohung -&gt; 2. Mahnung mit Betreibungsandrohung</description>
+        <inputEntry id="UnaryTests_0c5mc2w">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1gacvl9">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1tmwuzs">
+          <text>3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0q4oh4y">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1644alr">
+          <text>4</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0l6pr2c">
+        <description>Grosskunde, mehr als 45 Tage überfällig und letzte Mahnung war Zahlungserinnerung -&gt; 1. Mahnung mit Betreibungsandrohung</description>
+        <inputEntry id="UnaryTests_118pm74">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_07zccxd">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_11x5e0n">
+          <text>2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0au0kde">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1nouw5q">
+          <text>3</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0sqb1h3">
+        <description>Grosskunde, mehr als 45 Tage überfällig und bisher keine Mahnung -&gt; Zahlungserinnerung</description>
+        <inputEntry id="UnaryTests_1byrpy4">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0i0iqai">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_03of6rs">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0s2gtzb">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0nerqub">
+          <text>2</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1imq0xt">
+        <description>Grosskunde: Der Fall war im Vormonat auf Mahnsperre gesetzt und muss daher weiterhin abgeklärt und bearbeitet werden, es darf keine Mahnung raus. Manuelle Bearbeitung.</description>
+        <inputEntry id="UnaryTests_16cy787">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1kkddue">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0x1lb2y">
+          <text>0</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_011uh79">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1lo47ta">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_09ol5fb">
+        <description>Grosskunde: Fall ist gemäss Code Vormonat (5 = Fall bei Creditreform) bei Creditreform -&gt; Stand abklären, keine Mahnung versenden.</description>
+        <inputEntry id="UnaryTests_14ymbgx">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0ju81xg">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_10yyvvq">
+          <text>5</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_12wbdst">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1klh3yc">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1h4n2zn">
+        <description>Grosskunde hat bereits die 2. Mahnung erhalten. Nächste Konsequenz wäre die Weiterleitung an Creditreform, bei Grosskunden gut zu überlegen -&gt; Manuelle Bearbeitung notwendig. Keine Mahnung versenden.</description>
+        <inputEntry id="UnaryTests_0lsck0z">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0wm36kv">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1k8b7l1">
+          <text>4</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1e40rws">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1ssd2nz">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0cpbvj2">
+        <description>Grosskunde, mehr als 30 Tage überfällig und letzte Mahnung war 1. Mahnung mit Betreibungsandrohung -&gt; 2. Mahnung mit Betreibungsandrohung</description>
+        <inputEntry id="UnaryTests_15haeh0">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0lzxh97">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0sy38ac">
+          <text>3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_05nc6do">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_10a5zu2">
+          <text>4</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_09zkixw">
+        <description>Grosskunde, mehr als 30 Tage überfällig und letzte Mahnung war Zahlungserinnerung -&gt; 1. Mahnung mit Betreibungsandrohung</description>
+        <inputEntry id="UnaryTests_0tdaeoa">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_04t0r3e">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_05ml87f">
+          <text>2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1k4x32j">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1sr3jxy">
+          <text>3</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0phbwqb">
+        <description>Grosskunden erhalten grundsätzlich keine Mahnung bevor die Rechnung nicht 45 Tage überfällig ist, ausser sie haben vorher schon eine Mahnung erhalten, dann wird die Stufe erhöht. </description>
+        <inputEntry id="UnaryTests_1nkx2sj">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0et2l7r">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1ywmgxl">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1ly7w7b">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_02x0u95">
+          <text>2</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_02ybhz5">
+        <description>Keine Mahnung für Grosskunden mit so kurzer Überfälligkeit.</description>
+        <inputEntry id="UnaryTests_0uumusa">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0neinbh">
+          <text>[16..30]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0lk5e7e">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0ijz5ml">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1wh9mnn">
+          <text>1</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0otb4ys">
+        <description>Keine Mahnung für Grosskunden mit so kurzer Überfälligkeit.</description>
+        <inputEntry id="UnaryTests_1801i0r">
+          <text>"Grosskunde"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1kxiboz">
+          <text>[0..15]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1nqcz16">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1tbn50o">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_13os1lo">
+          <text>1</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0h8g7yr">
+        <description>Der Fall war im Vormonat auf Mahnsperre gesetzt und muss daher weiterhin abgeklärt und bearbeitet werden, es darf keine Mahnung raus. Manuelle Bearbeitung.</description>
+        <inputEntry id="UnaryTests_1x9jf3t">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0l38m7i">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1hnhgq4">
+          <text>0</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_133oksy">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_01f4wzx">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1jy8g93">
+        <description>Fall ist gemäss Code Vormonat (5 = Fall bei Creditreform) bei Creditreform -&gt; Stand abklären, keine Mahnung versenden.</description>
+        <inputEntry id="UnaryTests_1epplom">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_04psogc">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_09ws9ok">
+          <text>5</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_15w61zs">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0zf6d2c">
+          <text>5</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0ugkfq3">
+        <description>Wenn die letzte Mahnung die 2. Mahnung mit Betreibungsandrohung war, dann wird der Fall an Creditreform weitergeleitet.</description>
+        <inputEntry id="UnaryTests_0a5sqb8">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_18s1nrr">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1btjy80">
+          <text>4</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_03ozgen">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_08taiv4">
+          <text>5</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0d4ckvy">
+        <description>Wenn die letzte Mahnung die 1. Mahnung mit Betreibungsandrohung war --&gt; 2. Mahnung mit Betreibungsandrohung.</description>
+        <inputEntry id="UnaryTests_0pyn2lq">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0alkhk2">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0jd8gws">
+          <text>3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0a3t5tc">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1nn9dmh">
+          <text>4</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1mwpgs3">
+        <description>Alle übrigen --&gt; 1. Mahnung mit Betreibungsandrohung.</description>
+        <inputEntry id="UnaryTests_04ukzwv">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1tfb8p2">
+          <text>&gt;45</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1szvsis">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0a8zwoi">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_09v3pea">
+          <text>3</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0wse5gn">
+        <description>Der Fall war im Vormonat auf Mahnsperre gesetzt und muss daher weiterhin abgeklärt und bearbeitet werden, es darf keine Mahnung raus. Manuelle Bearbeitung.</description>
+        <inputEntry id="UnaryTests_1doi8d4">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0xbzhmn">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1m5wys3">
+          <text>0</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0pzngap">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0moyqwp">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1vptksg">
+        <description>Fall ist gemäss Code Vormonat (5 = Fall bei Creditreform) bei Creditreform -&gt; Stand abklären, keine Mahnung versenden.</description>
+        <inputEntry id="UnaryTests_1acn1ck">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0hw2zfn">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_03sm3wk">
+          <text>5</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0r0lmw0">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0ee7oe9">
+          <text>5</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_13ti8yg">
+        <description>Wenn die letzte Mahnung die 2. Mahnung mit Betreibungsandrohung war, dann wird der Fall an Creditreform weitergeleitet.</description>
+        <inputEntry id="UnaryTests_0rsntlw">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1h2k22z">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1ak8n8l">
+          <text>4</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0h6me34">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1hnxpa2">
+          <text>5</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1pruexm">
+        <description>Wenn die letzte Mahnung die 1. Mahnung mit Betreibungsandrohung war --&gt; 2. Mahnung mit Betreibungsandrohung.</description>
+        <inputEntry id="UnaryTests_1q0ozqk">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_02aqrf4">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1wiw4rp">
+          <text>3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0zxlj27">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1kzv1bs">
+          <text>4</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1i9zg7v">
+        <description>Wenn die letzte Mahnung die Zahlungserinnerung war --&gt; 1. Mahnung mit Betreibungsandrohung.</description>
+        <inputEntry id="UnaryTests_0h16j31">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0vunnb6">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0gu9wn0">
+          <text>2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0opw7uo">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0axcab0">
+          <text>3</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1kt6frf">
+        <description>Alle übrigen --&gt; Zahlungserinnerung</description>
+        <inputEntry id="UnaryTests_07g5rsq">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0xw0e88">
+          <text>[31..45]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_01swgg9">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1xgjrwh">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0uccx29">
+          <text>2</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1bgnds5">
+        <description>Der Fall war im Vormonat auf Mahnsperre gesetzt und muss daher weiterhin abgeklärt und bearbeitet werden, es darf keine Mahnung raus. Manuelle Bearbeitung.</description>
+        <inputEntry id="UnaryTests_1tk9e5e">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_18z2jbr">
+          <text>[16..30]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_14d5opc">
+          <text>0</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0gawicw">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1ud7mwd">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0w5ut02">
+        <description>Fall ist gemäss Code Vormonat (5 = Fall bei Creditreform) bei Creditreform -&gt; Stand abklären, keine Mahnung versenden.</description>
+        <inputEntry id="UnaryTests_0ejog15">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0vpnv7k">
+          <text>[16..30]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1nqmbsp">
+          <text>5</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0w8zfyx">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0c4phxc">
+          <text>5</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0tso9z8">
+        <description>Wenn die letzte Mahnung die 2. Mahnung mit Betreibungsandrohung war, dann wird der Fall an Creditreform weitergeleitet.</description>
+        <inputEntry id="UnaryTests_0qi1tvl">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0slsod5">
+          <text>[16..30]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1xticl8">
+          <text>4</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_01ficb4">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_04hzufp">
+          <text>5</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_07t902q">
+        <description>Wenn die letzte Mahnung die 1. Mahnung mit Betreibungsandrohung war --&gt; 2. Mahnung mit Betreibungsandrohung.</description>
+        <inputEntry id="UnaryTests_0xhs396">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_04uh6b5">
+          <text>[16..30]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1jqzv1o">
+          <text>3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0jf9qoa">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1dtpng1">
+          <text>4</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_008aykp">
+        <description>Wenn die letzte Mahnung die Zahlungserinnerung war --&gt; 1. Mahnung mit Betreibungsandrohung.</description>
+        <inputEntry id="UnaryTests_1ux2rp7">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0u7oiy2">
+          <text>[16..30]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_19p7ghb">
+          <text>2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0t1z3bj">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_13hc7kr">
+          <text>3</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1k93227">
+        <description>Alle übrigen --&gt; Zahlungserinnerung</description>
+        <inputEntry id="UnaryTests_0deyu8q">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0i4kwsd">
+          <text>[16..30]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1t2lrdc">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0mfpicb">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0verqg4">
+          <text>2</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0udj9cb">
+        <description>Der Fall war im Vormonat auf Mahnsperre gesetzt und muss daher weiterhin abgeklärt und bearbeitet werden, es darf keine Mahnung raus. Manuelle Bearbeitung.</description>
+        <inputEntry id="UnaryTests_17oq1sr">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1rzyzcq">
+          <text>[0..15]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1lk0v5m">
+          <text>0</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0kcxnmh">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0n169ir">
+          <text>0</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0sy9phl">
+        <description>Fall ist gemäss Code Vormonat (5 = Fall bei Creditreform) bei Creditreform -&gt; Stand abklären, keine Mahnung versenden.</description>
+        <inputEntry id="UnaryTests_0u9chen">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0zoyz5q">
+          <text>[0..15]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1jpioet">
+          <text>5</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_05xsj30">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1ei9jeo">
+          <text>5</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0kn16xp">
+        <description>Wenn die letzte Mahnung die 2. Mahnung mit Betreibungsandrohung war, dann wird der Fall an Creditreform weitergeleitet.</description>
+        <inputEntry id="UnaryTests_1yx6iyp">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1evo7gv">
+          <text>[0..15]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1gl8kr6">
+          <text>4</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0jvaxds">
+          <text>false</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_03umw4m">
+          <text>5</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0gbaedw">
+        <description>Wenn die letzte Mahnung die 1. Mahnung mit Betreibungsandrohung war --&gt; 2. Mahnung mit Betreibungsandrohung.</description>
+        <inputEntry id="UnaryTests_0yrueev">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1teacbw">
+          <text>[0..15]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1y2tby4">
+          <text>3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_03z2dd0">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1luzkqg">
+          <text>4</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_07ff2uq">
+        <description>Wenn die letzte Mahnung die Zahlungserinnerung war --&gt; 1. Mahnung mit Betreibungsandrohung.</description>
+        <inputEntry id="UnaryTests_1nmu0ss">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_15ni26w">
+          <text>[0..15]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1oaz678">
+          <text>2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1vop78y">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0ffwtrd">
+          <text>3</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0khc8g2">
+        <description>Alle übrigen --&gt; Zahlungserinnerung</description>
+        <inputEntry id="UnaryTests_0df7a0b">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_09qrmp6">
+          <text>[0..15]</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1bguqb8">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1juqdbu">
+          <text>true</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_18jye8t">
+          <text>2</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <inputData id="InputData_0hnakdt" name="Überfällig seit" />
+  <inputData id="InputData_0rs8f76" name="Mahnzähler" />
+  <inputData id="InputData_0d7bvbo" name="letzter Mahncode" />
+  <inputData id="InputData_0gptsrn" name="vorletzter Mahncode" />
+  <inputData id="InputData_012y3dw" name="Kommentar Departement Heads" />
+  <knowledgeSource id="KnowledgeSource_1m2s3m5" name="Data in SAP">
+    <authorityRequirement id="AuthorityRequirement_1xm9myu">
+      <requiredInput href="#InputData_0pg2kst" />
+    </authorityRequirement>
+  </knowledgeSource>
+  <inputData id="InputData_0pg2kst" name="Master Data Customers" />
+  <businessKnowledgeModel id="BusinessKnowledgeModel_0cab0gu" name="Anleitung Mahnlauf" />
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape dmnElementRef="DecisionTable123">
+        <dc:Bounds height="80" width="180" x="640" y="230" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_0t73z9j" dmnElementRef="InputData_0hnakdt">
+        <dc:Bounds height="45" width="125" x="587" y="427" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_0ww31nc" dmnElementRef="InformationRequirement_0hfen3p">
+        <di:waypoint x="650" y="427" />
+        <di:waypoint x="700" y="330" />
+        <di:waypoint x="700" y="310" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_0u215j1" dmnElementRef="InputData_0rs8f76">
+        <dc:Bounds height="45" width="125" x="697" y="507" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_1h3vgl7" dmnElementRef="InformationRequirement_10oxu18">
+        <di:waypoint x="760" y="507" />
+        <di:waypoint x="730" y="330" />
+        <di:waypoint x="730" y="310" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_1qcq2th" dmnElementRef="InputData_0d7bvbo">
+        <dc:Bounds height="45" width="125" x="787" y="427" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_07cf7ye" dmnElementRef="InformationRequirement_1i2kvjy">
+        <di:waypoint x="850" y="427" />
+        <di:waypoint x="760" y="330" />
+        <di:waypoint x="760" y="310" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_08uw82a" dmnElementRef="InputData_0gptsrn">
+        <dc:Bounds height="45" width="125" x="947" y="457" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_0076321" dmnElementRef="InformationRequirement_1032jla">
+        <di:waypoint x="1010" y="457" />
+        <di:waypoint x="790" y="330" />
+        <di:waypoint x="790" y="310" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_1r49y6j" dmnElementRef="InputData_012y3dw">
+        <dc:Bounds height="45" width="125" x="447" y="507" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_1vpbzuf" dmnElementRef="InformationRequirement_1eey7i4">
+        <di:waypoint x="510" y="507" />
+        <di:waypoint x="670" y="330" />
+        <di:waypoint x="670" y="310" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_0hkotka" dmnElementRef="KnowledgeSource_1m2s3m5">
+        <dc:Bounds height="63" width="100" x="380" y="238" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_0y8lno5" dmnElementRef="AuthorityRequirement_1asfaw7">
+        <di:waypoint x="480" y="270" />
+        <di:waypoint x="640" y="270" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_0ghw1ck" dmnElementRef="InputData_0pg2kst">
+        <dc:Bounds height="45" width="125" x="158" y="248" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_10c42yy" dmnElementRef="AuthorityRequirement_1xm9myu">
+        <di:waypoint x="283" y="271" />
+        <di:waypoint x="380" y="270" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_045zizj" dmnElementRef="BusinessKnowledgeModel_0cab0gu">
+        <dc:Bounds height="46" width="135" x="662" y="77" />
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="DMNEdge_0mmmbay" dmnElementRef="KnowledgeRequirement_1p36aa9">
+        <di:waypoint x="730" y="123" />
+        <di:waypoint x="730" y="230" />
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
