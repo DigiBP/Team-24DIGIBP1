@@ -416,12 +416,12 @@ In the third section we will discuss the following implementations:
 **Dunning Letters via Post**
 
 ![To-be Section 3 DLP1](./05_Images/TI_S3_DLP1.png)
-Sending the dunning notices via post is of course a manual process (Figure 1), which we modelled as a subprocess. Firstly, the letters need to be prepared, meaning the PDF files we split previously in section 2, part 5 need to be printed and put in an envelope (Figure 1, A). Next, the letters are sent via post (Figure 1, B). Afterwards, the process waits for seven days, to ensure all letters were received and none are returned (Figure 1, C). We chose seven days as a waiting period, as Feuerwächter AG’s customers are within Switzerland and we assume that this time period should be enough, to have the letter returned. The timer event configuration can be seen in Figure 2. After the waiting period, an employee needs to check if any letters were returned, if not, the process ends (Figure 1, D). For this purpose, we have added form fields to the user task (Figure 3), the settings of the form can be seen in Figure 4. On the outgoing arrows of the exclusive gateway, we added the conditions of the form, see configuration in Figure 5 for the “no” condition as an example.
+Sending the dunning notices via post is of course a manual process (Figure 1), which we modelled as a subprocess. Firstly, the letters need to be prepared, meaning the PDF files we split previously in section 2, part 5 need to be printed and put in an envelope (Figure 1, A). Next, the letters are sent via post (Figure 1, B). Afterwards, the process waits for seven days, to ensure all letters were received and none are returned (Figure 1, C). We chose seven days as a waiting period, as Feuerwächter AG’s customers are within Switzerland and we assume that this time period should be enough, to have the letter returned. The timer event configuration can be seen in Figure 2. After the waiting period, an employee needs to check if any letters were returned, if not, the process ends (Figure 1, D). For this purpose, we have added a Boolean form field to the user task (Figure 3). On the outgoing arrows of the exclusive gateway, we added the conditions of the form field, see configuration in Figure 4 for the “false” condition and Figure 5 for the “true” condition.
 
 ![To-be Section 3 DLP2](./05_Images/TI_S3_DLP2.jpg)
-If a letter is returned, an employee needs to try and contact the customer to inquire about the correct address (Figure 1, F).Here we have added again a form, for the employee to select whether he was able to reach the customer (Figure 6), the settings of the form are the same as in Figure 4 and 5 with the exception of the name of course. If the customer cannot be reached, the employee needs to contact the commune to obtain the correct address (Figure 1, H). After receiving correct address, the customer’s data has to be updated (Figure 1, I) and the letter resent (Figure 1, J).
+If a letter is returned, an employee needs to try and contact the customer to inquire about the correct address (Figure 1, F). Here we have added again a form field, for the employee to select whether he was able to reach the customer (Figure 6). The configuration of the arrows after the gateway are shown in figure 7 and 8. If the customer cannot be reached, the employee needs to contact the commune to obtain the correct address (Figure 1, H). After receiving correct address, the customer’s data has to be updated (Figure 1, I) and the letter resent (Figure 1, J).
 
-![To-be Section 3 DLP3](./05_Images/TI_S3_DLP3.png)![To-be Section 3 DLP4](./05_Images/TI_S3_DLP4.png)
+![To-be Section 3 DLP3](./05_Images/TI_S3_DLP3.png)
 
 **Dunning Letters via E-mail**
 
@@ -444,7 +444,10 @@ Similar to the debt collection confirmation, the trigger of the scenario is a Gm
 
 ## ▶️ Running the Process
 
-Follow these instructions to run the process:
+The following video shows a complete run-through of the dunning process:
+<video src="./04_Videos/FeuerwächterAG_DunningProcessDemo – 1717409227088.mp4" width="560" height="315" controls></video>
+
+Follow these instructions to run the process yourself:
 - Download the Camunda files 
 - Open the files in Camunda 7
 - deploy the Proess incl. the forms 
