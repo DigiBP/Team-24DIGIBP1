@@ -446,9 +446,10 @@ Similar to the debt collection confirmation, the trigger of the scenario is a Gm
 
 ## ▶️ Running the Process
 
-The following video shows a complete run-through of the dunning process:
+The video in the 04_Videos folder shows a complete run-through of the process. 
 
-[Video run-through process](./04_Videos/FeuerwächterAG_DunningProcessDemo%20–%201717409227088.mp4)
+> Please note that the video is too large to display on GitHub. You will need to download the video to view it.
+
 
 Follow these instructions to run the process yourself:
 - Download the Camunda files 
