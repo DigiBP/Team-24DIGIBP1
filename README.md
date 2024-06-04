@@ -167,7 +167,9 @@ In the first section we will discuss the following implementations:
 1.	Reminder Dunning Block
 2.	Decision Dunning Block
 
-**Reminder Dunning Block**
+![TI S1 Overview](./05_Images/TI_S1_Overview.png)
+
+**1. Reminder Dunning Block**
 
 We have changed the beginning of the process slightly, by moving the start of the entire process from Tuesday to Thursday. Every other week, an e-mail with the reminder to set the dunning block on the overdue invoices is automatically sent to the heads of department (HoD). With the new user roles as discussed in our assumptions above, they are asked to add dunning block were deemed necessary by adding comments directly on SAP (in our case the Excel file).
 
@@ -181,7 +183,7 @@ The make scenario is simple, it consists of a webhook (Figure 3, A), which is tr
 ![To-be Section 1 Figure 6](./05_Images/TI_S1_F6.jpg)
 In Camunda, we added an expression on the flow (Figure 1, B) in between the first timer event and the system task, as “Reminder_status=unsuccessful”. This expression is needed for the exclusive gateway to confirm the reminder was sent successfully by the make scenario. To achieve this, we put an execution listener on the “unsuccessful” arrow (Figure 1, C), looking for the variable “Reminder_status=unsuccessful”. However, if the reminder was sent successfully, this variable will change to “successful” and as a result follow the default path. If there was an issue with the make scenario, an employee will have to check manually what the error might have been, as a user task (Figure 1, D). Finally, the process arrives at the second timer event(Figure 1, E), which will continue the process the following Tuesday.
 
-**Decision Table**
+**2. Decision Dunning Block**
 
 The process for deciding which reminder code to set starts with the service task "Count rows in Spreadsheet." This is needed as preparation for the following subprocess. 
 
@@ -294,7 +296,7 @@ In the second section we will discuss the following implementations:
 
 ![To-be Section 2 Overview](./05_Images/TI_S2_Overview.jpg)
 
-**Debt Collection**
+**3. Debt Collection**
 
 ![To-be Section 2 DC1](./05_Images/TI_S2_DC1.png)
 
@@ -323,7 +325,7 @@ Lastly, to allow the process to proceed in Camunda, we use an HTTP module (Figur
 
 ![To-be Section 2 DC14](./05_Images/TI_S2_DC14.jpg) 
 
-**Dunning address correction**
+**4. Dunning address correction**
 
 ![To-be Section 2 ADC Overview](./05_Images/TI_S2_DAC_Overview.jpg) 
 
@@ -354,7 +356,7 @@ If the match was unsuccessful, the user gets a task in the tasklist to manually 
 After the execution of the dunning run, the parallel gateway (Figure 2, F) will divide the dunning notices based on whether they are sent by e-mail or Post. It is a parallel gateway as, based on the Feuerwächter AG, there are e-mail and post notices in every dunning run.
 
 
-**Splitting of the PDF**
+**5. Splitting of the PDF**
 
 Dunning notices, which do not have an e-mail address associated have to be sent via post. For this purpose, a PDF file, containing all Dunning notices of the current run, has to be downloaded from SAP which is then split into individual notices and the ones to be sent via post are printed for further processing. In this part of the process, we are looking into the splitting of the PDF file (Figure 1).
 ![To-be Section 2 PDF Overview](./05_Images/TI_S2_PDF.jpg) 
@@ -413,7 +415,7 @@ In the third section we will discuss the following implementations:
 
 ![To-be Section 3 Overview](./05_Images/TI_S3_Overview.png)
 
-**Dunning Letters via Post**
+**6. Dunning Letters via Post**
 
 ![To-be Section 3 DLP1](./05_Images/TI_S3_DLP1.png)
 Sending the dunning notices via post is of course a manual process (Figure 1), which we modelled as a subprocess. Firstly, the letters need to be prepared, meaning the PDF files we split previously in section 2, part 5 need to be printed and put in an envelope (Figure 1, A). Next, the letters are sent via post (Figure 1, B). Afterwards, the process waits for seven days, to ensure all letters were received and none are returned (Figure 1, C). We chose seven days as a waiting period, as Feuerwächter AG’s customers are within Switzerland and we assume that this time period should be enough, to have the letter returned. The timer event configuration can be seen in Figure 2. After the waiting period, an employee needs to check if any letters were returned, if not, the process ends (Figure 1, D). For this purpose, we have added a Boolean form field to the user task (Figure 3). On the outgoing arrows of the exclusive gateway, we added the conditions of the form field, see configuration in Figure 4 for the “false” condition and Figure 5 for the “true” condition.
@@ -423,7 +425,7 @@ If a letter is returned, an employee needs to try and contact the customer to in
 
 ![To-be Section 3 DLP3](./05_Images/TI_S3_DLP3.png)
 
-**Dunning Letters via E-mail**
+**7. Dunning Letters via E-mail**
 
 ![To-be Section 3 DLE](./05_Images/TI_S3_DLE.png)
 To send the dunning notices via e-mail, we have created a subprocess to automatically send the e-mails to the customers including the attachment with the dunning notice (Figure 1). First a system task initiates the sending of the dunning notice (Figure 1, B), we then check for errors during the processing. Once the successful sending could be confirmed, we check if any e-mails were returned due to invalid e-mail addresses with a message receive (Figure 1, F) and timer task (Figure 1, G). The set up of the assessment of successful e-mail sending is similar to the start of the process, where we also check if the reminder e-mail was sent as intended. For this reason, we add again a variable to the flow (arrow) between the start event and the system task (Figure 1, A) with the variable “Dunning_status=unsuccessful”. The system task “Send dunning email” triggers the make scenario (Figure 2).
@@ -445,7 +447,8 @@ Similar to the debt collection confirmation, the trigger of the scenario is a Gm
 ## ▶️ Running the Process
 
 The following video shows a complete run-through of the dunning process:
-<video src="./04_Videos/FeuerwächterAG_DunningProcessDemo – 1717409227088.mp4" width="560" height="315" controls></video>
+
+[Video run-through process](./04_Videos/FeuerwächterAG_DunningProcessDemo%20–%201717409227088.mp4)
 
 Follow these instructions to run the process yourself:
 - Download the Camunda files 
